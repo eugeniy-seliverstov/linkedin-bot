@@ -3,7 +3,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import fs from 'fs'
 import { getConnectionMessage } from './modules/messages.js'
 import dotenv from 'dotenv'
-import { loadCookies, saveCookies } from './modules/cookies.js'
+import { loadCookies, saveCookies } from './utils/cookies.js'
 import { randomTimeout } from './utils/timeout.js'
 
 dotenv.config()
@@ -18,25 +18,20 @@ const MAX_CLICKED_PROFILES = process.env.MAX_CLICKED_PROFILES
 const SHOULD_ADD_MESSAGE = process.env.SHOULD_ADD_MESSAGE === 'true'
 const TIMEOUT = parseInt(process.env.TIMEOUT) || 30000
 
-// Constants
-const COOKIES_PATH = './cookies.json'
-
 let LOOKED_PROFILES = 0
 let CLICKED_PROFILES = 0
 
-const { browser, page } = await launchBrowser(COOKIES_PATH)
+const { browser, page } = await launchBrowser()
 
 // Set up a function to launch Puppeteer and load cookies if available
-async function launchBrowser(cookiesPath) {
+async function launchBrowser() {
   const browser = await puppeteer.launch({
     headless: process.argv.includes('--stealth') ? 'new' : false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     timeout: TIMEOUT,
   })
   const page = await browser.newPage()
-  if (cookiesPath && fs.existsSync(cookiesPath)) {
-    await loadCookies(page, cookiesPath)
-  }
+  await loadCookies(page)
   return { browser, page }
 }
 
@@ -161,7 +156,7 @@ async function start() {
       console.log('login successfully')
     }
     await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
-    await saveCookies(page, COOKIES_PATH)
+    await saveCookies(page)
     // await increaseSkills()
     for (let i = 0; i < MAX_PAGE; i++) {
       await scrollDown()
