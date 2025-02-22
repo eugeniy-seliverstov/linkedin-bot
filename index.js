@@ -15,8 +15,8 @@ puppeteer.use(StealthPlugin())
 const LINKEDIN_LOGIN = process.env.LINKEDIN_LOGIN
 const LINKEDIN_PASSWORD = process.env.LINKEDIN_PASSWORD
 const SEARCH_URL = process.env.SEARCH_URL
-const MAX_PAGE = process.env.MAX_PAGE
-const MAX_CLICKED_PROFILES = process.env.MAX_CLICKED_PROFILES
+const MAX_PAGE = parseInt(process.env.MAX_PAGE) || 300
+const MAX_CLICKED_PROFILES = parseInt(process.env.MAX_CLICKED_PROFILES) || 15
 const SHOULD_ADD_MESSAGE = process.env.SHOULD_ADD_MESSAGE === 'true'
 const TIMEOUT = parseInt(process.env.TIMEOUT) || 30000
 
