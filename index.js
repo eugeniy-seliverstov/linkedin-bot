@@ -1,8 +1,10 @@
+import fs from 'fs'
+import dotenv from 'dotenv'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import fs from 'fs'
+
 import { getConnectionMessage } from './modules/messages.js'
-import dotenv from 'dotenv'
+
 import { loadCookies, saveCookies } from './utils/cookies.js'
 import { randomTimeout } from './utils/timeout.js'
 
@@ -58,27 +60,32 @@ const selectors = {
 
 async function login() {
   try {
+    console.log('Opening LinkedIn login page')
     await page.goto('https://linkedin.com/login', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
+
     await page.type(selectors.loginForm.username, LINKEDIN_LOGIN, { delay: 100 })
     await page.type(selectors.loginForm.password, LINKEDIN_PASSWORD, { delay: 100 })
+
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: TIMEOUT }),
       page.click(selectors.loginForm.submit)
     ])
-    console.log('Logged in successfully')
+    console.log('Login successful')
   } catch (err) {
-    console.error('Error while logging in:', err)
+    console.error('Error while logging in', err)
   }
 }
 
 async function finish() {
-  console.log('Finish')
-  console.log(`${LOOKED_PROFILES}: LOOKED_PROFILES`)
-  console.log(`${CLICKED_PROFILES}: CLICKED_PROFILES`)
-  await fs.appendFile('log.txt', `Finish at ${new Date().toLocaleString()}\n${LOOKED_PROFILES}: LOOKED_PROFILES\n${CLICKED_PROFILES}: CLICKED_PROFILES\n`, (err) => {
+  console.log('Finishing script execution')
+  console.log(`Profiles viewed: ${LOOKED_PROFILES}`)
+  console.log(`Profiles connected: ${CLICKED_PROFILES}`)
+
+  await fs.appendFile('log.txt', `Finish at ${new Date().toLocaleString()}\nProfiles viewed: ${LOOKED_PROFILES}\nProfiles connected: ${CLICKED_PROFILES}\n`, (err) => {
     if (err) throw err
-    console.log('Messages written to log file!')
+    console.log('Log file updated')
   })
+
   await browser.close()
 }
 
@@ -86,92 +93,113 @@ async function connectPerson(card) {
   try {
     const subtitle = await card.$eval(selectors.searchResults.subtitle, element => element.textContent.trim())
     let connectBtn
+
     try {
       connectBtn = await card.waitForSelector(selectors.searchResults.connectButton, { timeout: TIMEOUT })
     } catch (error) {
-      console.log('Button not found:', error)
+      console.log('No connect button found', error)
       connectBtn = null
     }
-    const buttonText = await connectBtn?.evaluate(btn => btn.textContent.trim())
-    console.log(buttonText, ': text on button')
-    if (buttonText.includes('Connect')) {
-      console.log(subtitle, ': position(subtitle)')
 
+    const buttonText = await connectBtn?.evaluate(btn => btn.textContent.trim())
+    console.log(`Button text: "${buttonText}"`)
+
+    if (buttonText.includes('Connect')) {
+      console.log(`Connecting to ${subtitle}`)
       await connectBtn?.click()
+
       if (SHOULD_ADD_MESSAGE) {
         const name = await card.$eval(selectors.searchResults.name, element => element.textContent.trim().split(' ')[0])
+        console.log(`Adding message to ${name}`)
+
         const addMessageBtn = await page.waitForSelector(selectors.searchResults.addMessageButton, { timeout: TIMEOUT })
         await addMessageBtn.click()
+
         const msg = getConnectionMessage(name)
-        console.log(`writing this message to ${name}: ${msg}`)
         await page.type('textarea', msg, { delay: 100 })
       }
+
       const sendBtn = await page.waitForSelector(selectors.searchResults.sendButton, { timeout: TIMEOUT })
       await sendBtn.click()
       await randomTimeout()
 
       CLICKED_PROFILES += 1
-      console.log('Connected')
+      console.log('Connection request sent')
+
       await randomTimeout()
     }
   } catch (err) {
-    console.error('Error while connecting to a person:', err)
+    console.error('Error while connecting to a person', err)
   }
 }
 
 async function connectPeople() {
   try {
     await page.waitForSelector(selectors.searchResults.item, { timeout: TIMEOUT })
+
     const cards = await page.$$(selectors.searchResults.item)
     LOOKED_PROFILES += cards.length
-    console.log(`${cards.length}: cards.length`)
+    console.log(`Found ${cards.length} profiles`)
+
     for (const card of cards) {
       await connectPerson(card)
       if (CLICKED_PROFILES >= MAX_CLICKED_PROFILES) {
+        console.log('Max clicked profiles reached, stopping')
         break
       }
     }
   } catch (err) {
-    console.error('Error while connecting to people:', err)
+    console.error('Error while connecting to people', err)
   }
 }
 
 async function goNext() {
   try {
-    console.log('try to go next page')
+    console.log('Moving to the next page')
     const nextBtn = await page.waitForSelector(selectors.nextPage.button, { visible: true, timeout: TIMEOUT })
+
     await Promise.all([page.waitForNavigation({ timeout: TIMEOUT }), nextBtn.click(),])
     await randomTimeout()
-    console.log('Next page successfully')
+    console.log('Moved to the next page')
   } catch (err) {
-    console.error('Error while going to the next page:', err)
+    console.error('Error while going to the next page', err)
   }
 }
 
 async function start() {
   try {
+    console.log('Starting LinkedIn bot')
     await page.setViewport({ width: 1080, height: 1024 })
 
+    console.log('Navigating to LinkedIn feed')
     await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
     const isLoggedIn = (await page.title()).includes('Feed')
     if (!isLoggedIn) await login()
-    await saveCookies(page)
 
+    await saveCookies(page)
+    console.log('Cookies saved')
+
+    console.log('Navigating to search page')
     await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
     // await increaseSkills()
 
     for (let i = 0; i < MAX_PAGE; i++) {
+      console.log(`Processing page ${i + 1} of ${MAX_PAGE}`)
       await scrollDown()
       await connectPeople()
-      if (MAX_CLICKED_PROFILES > CLICKED_PROFILES) await goNext()
-      else break
+      if (MAX_CLICKED_PROFILES > CLICKED_PROFILES) {
+        await goNext()
+      } else {
+        console.log('Max clicked profiles reached, stopping')
+        break
+      }
     }
 
     await finish()
   } catch (err) {
-    console.error('Error while starting the program:', err)
+    console.error('Error while starting the program', err)
   }
 }
 
@@ -193,7 +221,7 @@ async function scrollDown() {
       })
     })
   } catch (err) {
-    console.error('Error while scrolling down:', err)
+    console.error('Error while scrolling down', err)
   }
 }
 
