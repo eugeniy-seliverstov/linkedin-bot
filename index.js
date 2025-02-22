@@ -81,12 +81,15 @@ async function finish() {
   console.log(`Profiles viewed: ${LOOKED_PROFILES}`)
   console.log(`Profiles connected: ${CLICKED_PROFILES}`)
 
-  await fs.appendFile('log.txt', `Finish at ${new Date().toLocaleString()}\nProfiles viewed: ${LOOKED_PROFILES}\nProfiles connected: ${CLICKED_PROFILES}\n`, (err) => {
-    if (err) throw err
+  try {
+    const logMessage = `Finish at ${new Date().toLocaleString()}\nProfiles viewed: ${LOOKED_PROFILES}\nProfiles connected: ${CLICKED_PROFILES}\n\n`
+    await fs.promises.appendFile('log.txt', logMessage)
     console.log('Log file updated')
-  })
 
-  await browser.close()
+    await browser.close()
+  } catch (err) {
+    console.error('Error during script finalization', err)
+  }
 }
 
 async function connectPerson(card) {
