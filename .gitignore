@@ -1,4 +1,4 @@
-/.env
-/node_modules
-/cookies.json
-
+.env
+log.txt
+node_modules
+cookies.json
