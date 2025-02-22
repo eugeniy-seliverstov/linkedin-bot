@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { log } from './logger.js'
 
 export const COOKIES_PATH = './cookies.json'
 
@@ -14,20 +15,20 @@ export async function saveCookies(page) {
 export async function loadCookies(page) {
   try {
     if (!fs.existsSync(COOKIES_PATH)) {
-      console.warn('Cookies file not found, skipping loading cookies')
+      log.warn('Cookies file not found, skipping loading cookies')
       return
     }
 
     const cookiesJSON = await fs.promises.readFile(COOKIES_PATH, 'utf8')
     if (!cookiesJSON.trim()) {
-      console.warn('Cookies file is empty, skipping loading cookies')
+      log.warn('Cookies file is empty, skipping loading cookies')
       return
     }
 
     const cookies = JSON.parse(cookiesJSON)
     await page.setCookie(...cookies)
-    console.log('Cookies loaded successfully')
+    log.info('Cookies loaded successfully')
   } catch (error) {
-    console.error('Error loading cookies:', error)
+    log.warn('Error loading cookies:', error)
   }
 }

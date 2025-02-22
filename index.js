@@ -1,12 +1,12 @@
-import fs from 'fs'
 import dotenv from 'dotenv'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 
 import { getConnectionMessage } from './modules/messages.js'
 
-import { loadCookies, saveCookies } from './utils/cookies.js'
+import { log } from './utils/logger.js'
 import { randomTimeout } from './utils/timeout.js'
+import { loadCookies, saveCookies } from './utils/cookies.js'
 
 dotenv.config()
 puppeteer.use(StealthPlugin())
@@ -60,7 +60,7 @@ const selectors = {
 
 async function login() {
   try {
-    console.log('Opening LinkedIn login page')
+    log.info('Opening LinkedIn login page')
     await page.goto('https://linkedin.com/login', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
     await page.type(selectors.loginForm.username, LINKEDIN_LOGIN, { delay: 100 })
@@ -70,26 +70,18 @@ async function login() {
       page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: TIMEOUT }),
       page.click(selectors.loginForm.submit)
     ])
-    console.log('Login successful')
+    log.info('Login successful')
   } catch (err) {
-    console.error('Error while logging in', err)
+    log.error('Error while logging in', err)
   }
 }
 
 async function finish() {
-  console.log('Finishing script execution')
-  console.log(`Profiles viewed: ${LOOKED_PROFILES}`)
-  console.log(`Profiles connected: ${CLICKED_PROFILES}`)
+  log.info('Finishing script execution')
+  log.info(`Profiles viewed: ${LOOKED_PROFILES}`)
+  log.info(`Profiles connected: ${CLICKED_PROFILES}`)
 
-  try {
-    const logMessage = `Finish at ${new Date().toLocaleString()}\nProfiles viewed: ${LOOKED_PROFILES}\nProfiles connected: ${CLICKED_PROFILES}\n\n`
-    await fs.promises.appendFile('log.txt', logMessage)
-    console.log('Log file updated')
-
-    await browser.close()
-  } catch (err) {
-    console.error('Error during script finalization', err)
-  }
+  await browser.close()
 }
 
 async function connectPerson(card) {
@@ -100,20 +92,20 @@ async function connectPerson(card) {
     try {
       connectBtn = await card.waitForSelector(selectors.searchResults.connectButton, { timeout: TIMEOUT })
     } catch (error) {
-      console.log('No connect button found', error)
+      log.info('No connect button found', error)
       connectBtn = null
     }
 
     const buttonText = await connectBtn?.evaluate(btn => btn.textContent.trim())
-    console.log(`Button text: "${buttonText}"`)
+    log.info(`Button text: "${buttonText}"`)
 
     if (buttonText.includes('Connect')) {
-      console.log(`Connecting to ${subtitle}`)
+      log.info(`Connecting to ${subtitle}`)
       await connectBtn?.click()
 
       if (SHOULD_ADD_MESSAGE) {
         const name = await card.$eval(selectors.searchResults.name, element => element.textContent.trim().split(' ')[0])
-        console.log(`Adding message to ${name}`)
+        log.info(`Adding message to ${name}`)
 
         const addMessageBtn = await page.waitForSelector(selectors.searchResults.addMessageButton, { timeout: TIMEOUT })
         await addMessageBtn.click()
@@ -127,12 +119,12 @@ async function connectPerson(card) {
       await randomTimeout()
 
       CLICKED_PROFILES += 1
-      console.log('Connection request sent')
+      log.info('Connection request sent')
 
       await randomTimeout()
     }
   } catch (err) {
-    console.error('Error while connecting to a person', err)
+    log.error('Error while connecting to a person', err)
   }
 }
 
@@ -142,67 +134,67 @@ async function connectPeople() {
 
     const cards = await page.$$(selectors.searchResults.item)
     LOOKED_PROFILES += cards.length
-    console.log(`Found ${cards.length} profiles`)
+    log.info(`Found ${cards.length} profiles`)
 
     for (const card of cards) {
       await connectPerson(card)
       if (CLICKED_PROFILES >= MAX_CLICKED_PROFILES) {
-        console.log('Max clicked profiles reached, stopping')
+        log.info('Max clicked profiles reached, stopping')
         break
       }
     }
   } catch (err) {
-    console.error('Error while connecting to people', err)
+    log.error('Error while connecting to people', err)
   }
 }
 
 async function goNext() {
   try {
-    console.log('Moving to the next page')
+    log.info('Moving to the next page')
     const nextBtn = await page.waitForSelector(selectors.nextPage.button, { visible: true, timeout: TIMEOUT })
 
     await Promise.all([page.waitForNavigation({ timeout: TIMEOUT }), nextBtn.click(),])
     await randomTimeout()
-    console.log('Moved to the next page')
+    log.info('Moved to the next page')
   } catch (err) {
-    console.error('Error while going to the next page', err)
+    log.error('Error while going to the next page', err)
   }
 }
 
 async function start() {
   try {
-    console.log('Starting LinkedIn bot')
+    log.info('Starting LinkedIn bot')
     await page.setViewport({ width: 1080, height: 1024 })
 
-    console.log('Navigating to LinkedIn feed')
+    log.info('Navigating to LinkedIn feed')
     await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
     const isLoggedIn = (await page.title()).includes('Feed')
     if (!isLoggedIn) await login()
 
     await saveCookies(page)
-    console.log('Cookies saved')
+    log.info('Cookies saved')
 
-    console.log('Navigating to search page')
+    log.info('Navigating to search page')
     await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
     // await increaseSkills()
 
     for (let i = 0; i < MAX_PAGE; i++) {
-      console.log(`Processing page ${i + 1} of ${MAX_PAGE}`)
+      log.info(`Processing page ${i + 1} of ${MAX_PAGE}`)
       await scrollDown()
       await connectPeople()
       if (MAX_CLICKED_PROFILES > CLICKED_PROFILES) {
         await goNext()
       } else {
-        console.log('Max clicked profiles reached, stopping')
+        log.info('Max clicked profiles reached, stopping')
         break
       }
     }
 
     await finish()
   } catch (err) {
-    console.error('Error while starting the program', err)
+    log.error('Error while starting the program', err)
   }
 }
 
@@ -224,7 +216,7 @@ async function scrollDown() {
       })
     })
   } catch (err) {
-    console.error('Error while scrolling down', err)
+    log.error('Error while scrolling down', err)
   }
 }
 

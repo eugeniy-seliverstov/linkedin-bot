@@ -1,4 +1,4 @@
 .env
-log.txt
+logs
 node_modules
 cookies.json

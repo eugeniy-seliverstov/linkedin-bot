@@ -14,7 +14,6 @@ export default [
     rules: {
       'no-console': 'off',
       'no-unused-vars': 'warn',
-      'indent': ['error', 2],
       'quotes': ['error', 'single'],
       'semi': ['error', 'never'],
       'no-multiple-empty-lines': ['error', { 'max': 1 }],
