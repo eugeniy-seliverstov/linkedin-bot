@@ -15,6 +15,7 @@ const SEARCH_URL = process.env.SEARCH_URL
 const MAX_PAGE = process.env.MAX_PAGE
 const MAX_CLICKED_PROFILES = process.env.MAX_CLICKED_PROFILES
 const SHOULD_ADD_MESSAGE = process.env.SHOULD_ADD_MESSAGE === 'true';
+const TIMEOUT = parseInt(process.env.TIMEOUT) || 30000
 
 let LOOKED_PROFILES = 0;
 let CLICKED_PROFILES = 0;
@@ -26,7 +27,11 @@ const {browser, page} = await launchBrowser(loadCookiesPath);
 
 // Set up a function to launch Puppeteer and load cookies if available
 async function launchBrowser(loadCookiesPath) {
-  const browser = await puppeteer.launch({headless: process.argv.includes('--stealth') ? 'new' : false});
+  const browser = await puppeteer.launch({
+    headless: process.argv.includes('--stealth') ? 'new' : false,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    timeout: TIMEOUT,
+  });
   const page = await browser.newPage();
   if (loadCookiesPath && fs.existsSync(loadCookiesPath)) {
     await loadCookies(page, loadCookiesPath);
@@ -57,10 +62,13 @@ const selectors = {
 
 async function login() {
   try {
-    await page.goto('https://linkedin.com/login');
+    await page.goto('https://linkedin.com/login', { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
     await page.type(selectors.loginForm.username, LINKEDIN_LOGIN, {delay: 100});
     await page.type(selectors.loginForm.password, LINKEDIN_PASSWORD, {delay: 100});
-    await Promise.all([page.click(selectors.loginForm.submit), page.waitForNavigation(),]);
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: TIMEOUT }),
+      page.click(selectors.loginForm.submit)
+    ]);
     console.log('Logged in successfully');
   } catch (err) {
     console.error('Error while logging in:', err);
@@ -83,7 +91,7 @@ async function connectPerson(card) {
     const subtitle = await card.$eval(selectors.searchResults.subtitle, element => element.textContent.trim());
     let connectBtn
     try {
-      connectBtn = await card.waitForSelector(selectors.searchResults.connectButton);
+      connectBtn = await card.waitForSelector(selectors.searchResults.connectButton, { timeout: TIMEOUT });
     } catch (error) {
       console.log('Button not found:', error);
       connectBtn = null
@@ -96,13 +104,13 @@ async function connectPerson(card) {
       await connectBtn?.click();
       if (SHOULD_ADD_MESSAGE) {
         const name = await card.$eval(selectors.searchResults.name, element => element.textContent.trim().split(' ')[0])
-        const addMessageBtn = await page.waitForSelector(selectors.searchResults.addMessageButton);
+        const addMessageBtn = await page.waitForSelector(selectors.searchResults.addMessageButton, { timeout: TIMEOUT });
         await addMessageBtn.click();
         const msg = getConnectionMessage(name)
         console.log(`writing this message to ${name}: ${msg}`)
         await page.type('textarea', msg, {delay: 100});
       }
-      const sendBtn = await page.waitForSelector(selectors.searchResults.sendButton);
+      const sendBtn = await page.waitForSelector(selectors.searchResults.sendButton, { timeout: TIMEOUT });
       await sendBtn.click();
       await randomTimeout();
 
@@ -118,7 +126,7 @@ async function connectPerson(card) {
 
 async function connectPeople() {
   try {
-    await page.waitForSelector(selectors.searchResults.item);
+    await page.waitForSelector(selectors.searchResults.item, { timeout: TIMEOUT });
     const cards = await page.$$(selectors.searchResults.item);
     LOOKED_PROFILES += cards.length;
     console.log(`${cards.length}: cards.length`);
@@ -136,8 +144,8 @@ async function connectPeople() {
 async function goNext() {
   try {
     console.log(`try to go next page`)
-    const nextBtn = await page.waitForSelector(selectors.nextPage.button, {visible: true});
-    await Promise.all([page.waitForNavigation(), nextBtn.click(),]);
+    const nextBtn = await page.waitForSelector(selectors.nextPage.button, {visible: true, timeout: TIMEOUT });
+    await Promise.all([page.waitForNavigation({ timeout: TIMEOUT }), nextBtn.click(),]);
     await randomTimeout();
     console.log('Next page successfully');
   } catch (err) {
@@ -152,7 +160,7 @@ async function start() {
     if (!(await page.title()).includes('Feed')) await login(); else {
       console.log('login successfully')
     }
-    await page.goto(SEARCH_URL);
+    await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
     await saveCookies(page, saveCookiesPath);
     // await increaseSkills()
     for (let i = 0; i < MAX_PAGE; i++) {
