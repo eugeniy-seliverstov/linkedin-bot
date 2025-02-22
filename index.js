@@ -151,19 +151,24 @@ async function goNext() {
 async function start() {
   try {
     await page.setViewport({ width: 1080, height: 1024 })
-    await page.goto('https://www.linkedin.com/feed/')
-    if (!(await page.title()).includes('Feed')) await login(); else {
-      console.log('login successfully')
-    }
-    await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
+
+    await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
+
+    const isLoggedIn = (await page.title()).includes('Feed')
+    if (!isLoggedIn) await login()
     await saveCookies(page)
+
+    await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
+
     // await increaseSkills()
+
     for (let i = 0; i < MAX_PAGE; i++) {
       await scrollDown()
       await connectPeople()
       if (MAX_CLICKED_PROFILES > CLICKED_PROFILES) await goNext()
       else break
     }
+
     await finish()
   } catch (err) {
     console.error('Error while starting the program:', err)
