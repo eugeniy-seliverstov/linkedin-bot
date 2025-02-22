@@ -9,6 +9,7 @@ import { randomTimeout } from "./utils/timeout.js";
 dotenv.config()
 puppeteer.use(StealthPlugin())
 
+// Configuration
 const LINKEDIN_LOGIN = process.env.LINKEDIN_LOGIN
 const LINKEDIN_PASSWORD = process.env.LINKEDIN_PASSWORD
 const SEARCH_URL = process.env.SEARCH_URL
@@ -17,24 +18,24 @@ const MAX_CLICKED_PROFILES = process.env.MAX_CLICKED_PROFILES
 const SHOULD_ADD_MESSAGE = process.env.SHOULD_ADD_MESSAGE === 'true';
 const TIMEOUT = parseInt(process.env.TIMEOUT) || 30000
 
+// Constants
+const COOKIES_PATH = './cookies.json'
+
 let LOOKED_PROFILES = 0;
 let CLICKED_PROFILES = 0;
 
-const saveCookiesPath = './cookies.json';
-const loadCookiesPath = './cookies.json';
-
-const {browser, page} = await launchBrowser(loadCookiesPath);
+const {browser, page} = await launchBrowser(COOKIES_PATH);
 
 // Set up a function to launch Puppeteer and load cookies if available
-async function launchBrowser(loadCookiesPath) {
+async function launchBrowser(cookiesPath) {
   const browser = await puppeteer.launch({
     headless: process.argv.includes('--stealth') ? 'new' : false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     timeout: TIMEOUT,
   });
   const page = await browser.newPage();
-  if (loadCookiesPath && fs.existsSync(loadCookiesPath)) {
-    await loadCookies(page, loadCookiesPath);
+  if (cookiesPath && fs.existsSync(cookiesPath)) {
+    await loadCookies(page, cookiesPath);
   }
   return {browser, page};
 }
@@ -161,7 +162,7 @@ async function start() {
       console.log('login successfully')
     }
     await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
-    await saveCookies(page, saveCookiesPath);
+    await saveCookies(page, COOKIES_PATH);
     // await increaseSkills()
     for (let i = 0; i < MAX_PAGE; i++) {
       await scrollDown();
