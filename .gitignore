@@ -1,4 +1,8 @@
 .env
-logs
-node_modules
+
+logs/
+logs/*.log
+
+node_modules/
+
 cookies.json
