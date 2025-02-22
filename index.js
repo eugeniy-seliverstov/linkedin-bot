@@ -138,8 +138,8 @@ async function connectPeople() {
 
     for (const card of cards) {
       await connectPerson(card)
+
       if (CLICKED_PROFILES >= MAX_CLICKED_PROFILES) {
-        log.info('Max clicked profiles reached, stopping')
         break
       }
     }
@@ -184,6 +184,7 @@ async function start() {
       log.info(`Processing page ${i + 1} of ${MAX_PAGE}`)
       await scrollDown()
       await connectPeople()
+
       if (MAX_CLICKED_PROFILES > CLICKED_PROFILES) {
         await goNext()
       } else {
