@@ -42,13 +42,13 @@ const selectors = {
     username: '#username', password: '#password', submit: '.login__form_action_container button',
   },
   searchResults: {
-    item: '.search-results-container > div:nth-child(2) > div > ul > li',
+    item: '.search-results-container > div:nth-child(1) > div > ul > li',
     subtitle: '.mb1 > div:nth-child(2)',
     connectButton: 'div > div > div > div:nth-child(3) button',
     sendButton: 'button[aria-label="Send without a note"]',
     addMessageButton: 'button[aria-label="Add a note"]',
     inviteHeaderMsg: '.artdeco-modal h2#send-invite-modal',
-    name: '.entity-result__title-line--2-lines > span > a > span > span:nth-child(1)',
+    name: 'div[data-view-name=search-entity-result-universal-template] > div > div > div:nth-child(2) a',
   },
   nextPage: {
     button: 'button[aria-label="Next"]',
