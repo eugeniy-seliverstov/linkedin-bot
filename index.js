@@ -38,13 +38,17 @@ async function launchBrowser() {
 }
 
 const selectors = {
+  loginChoose: {
+    block: '.member-profile-block',
+    member: '.member-profile__details',
+  },
   loginForm: {
     username: '#username', password: '#password', submit: '.login__form_action_container button',
   },
   searchResults: {
-    item: '.search-results-container > div:nth-child(1) > div > ul > li',
-    subtitle: '.mb1 > div:nth-child(2)',
-    connectButton: 'div > div > div > div:nth-child(3) button',
+    cards: '.search-results-container > div:nth-child(1) ul > li',
+    subtitle: 'div > div:nth-child(2).t-14.t-normal',
+    connectButton: 'div div:nth-child(3) button',
     sendButton: 'button[aria-label="Send without a note"]',
     addMessageButton: 'button[aria-label="Add a note"]',
     inviteHeaderMsg: '.artdeco-modal h2#send-invite-modal',
@@ -63,13 +67,20 @@ async function login() {
     log.info('Opening LinkedIn login page')
     await page.goto('https://linkedin.com/login', { waitUntil: 'domcontentloaded', timeout: TIMEOUT })
 
-    await page.type(selectors.loginForm.username, LINKEDIN_LOGIN, { delay: 100 })
-    await page.type(selectors.loginForm.password, LINKEDIN_PASSWORD, { delay: 100 })
+    const isAccountChoosing = await page.$$(selectors.loginChoose.block)
 
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: TIMEOUT }),
-      page.click(selectors.loginForm.submit)
-    ])
+    if (isAccountChoosing) {
+      await page.click(selectors.loginChoose.member)
+    } else {
+      await page.type(selectors.loginForm.username, LINKEDIN_LOGIN, { delay: 100 })
+      await page.type(selectors.loginForm.password, LINKEDIN_PASSWORD, { delay: 100 })
+
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: TIMEOUT }),
+        page.click(selectors.loginForm.submit)
+      ])
+    }
+
     log.info('Login successful')
   } catch (err) {
     log.error('Error while logging in', err)
@@ -87,22 +98,23 @@ async function finish() {
 async function connectPerson(card) {
   try {
     const subtitle = await card.$eval(selectors.searchResults.subtitle, element => element.textContent.trim())
-    let connectBtn
+    let button
 
     try {
-      connectBtn = await card.waitForSelector(selectors.searchResults.connectButton, { timeout: TIMEOUT })
+      button = await card.waitForSelector(selectors.searchResults.connectButton, { timeout: TIMEOUT })
     } catch (error) {
       log.info('No connect button found', error)
-      connectBtn = null
+      button = null
     }
 
-    const buttonText = await connectBtn?.evaluate(btn => btn.textContent.trim())
+    const buttonText = await button?.evaluate(btn => btn.textContent.trim())
     log.info(`Button text: "${buttonText}"`)
 
     if (buttonText.includes('Connect')) {
       log.info(`Connecting to ${subtitle}`)
-      await connectBtn?.click()
+      await button?.click()
 
+      // Unused for now
       if (SHOULD_ADD_MESSAGE) {
         const name = await card.$eval(selectors.searchResults.name, element => element.textContent.trim().split(' ')[0])
         log.info(`Adding message to ${name}`)
@@ -130,9 +142,10 @@ async function connectPerson(card) {
 
 async function connectPeople() {
   try {
-    await page.waitForSelector(selectors.searchResults.item, { timeout: TIMEOUT })
+    await page.waitForSelector(selectors.searchResults.cards, { timeout: TIMEOUT })
 
-    const cards = await page.$$(selectors.searchResults.item)
+    const cards = await page.$$(selectors.searchResults.cards)
+    console.log('cards: ', cards.length)
     LOOKED_PROFILES += cards.length
     log.info(`Found ${cards.length} profiles`)
 
