@@ -12,30 +12,33 @@ This script is designed to automate the process of sending connection requests t
 2. Set LinkedIn language to English.
 3. Install dependencies: `pnpm install`
 4. Copy `.env.example` to `.env` and fill in the required values.
-5. Customize messages in `src/modules/messages.js`. Use `NAME` as a placeholder — it will be replaced with the target's first name. A random message is chosen each time.
-6. Run the bot:
+5. Run the bot:
    - Visible browser: `pnpm dev`
-   - Headless mode: `pnpm start:stealth`
+   - Headless mode: `pnpm start:headless`
 
 ## Configuration
 
-The `.env` file should contain the following environment variables:
+Copy `.env.example` to `.env` and fill in the required values:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `LINKEDIN_LOGIN` | Yes | Email address associated with the LinkedIn account |
-| `LINKEDIN_PASSWORD` | Yes | Password for the LinkedIn account |
 | `SEARCH_URL` | Yes | URL of the LinkedIn search results page. **Use 1st and 2nd circles in search, not 3rd!** |
-| `MAX_PAGE` | No | Maximum number of pages to scrape (default: 300) |
+| `MAX_PAGE` | No | Maximum number of pages to process (default: 300) |
 | `TIMEOUT` | No | Maximum time in ms to wait for page elements (default: 30000) |
 | `RANDOM_MAX_TIMEOUT` | No | Maximum random delay in ms between actions (default: 5000) |
-| `MAX_CLICKED_PROFILES` | No | Maximum number of connection requests to send (default: 15) |
-| `SHOULD_ADD_MESSAGE` | No | Include a personalized message in requests (`true`/`false`) |
+| `MAX_CLICKED_PROFILES` | No | Maximum number of connection requests to send per run (default: 15) |
+
+## Authentication
+
+The bot uses **cookie-based authentication**. No credentials are stored in config.
+
+1. On first run, a browser window opens — log in manually.
+2. Cookies are saved to `cookies.json` and reused on subsequent runs.
+3. If the session expires, the bot sends a **macOS notification** and waits up to 5 minutes for you to log in again.
 
 ## How It Works
-1. Launches a Puppeteer-controlled browser and attempts to reuse saved cookies for authentication.
-2. If not logged in, navigates to the LinkedIn login page and authenticates with provided credentials.
+1. Launches a Playwright-controlled Chromium browser and loads saved cookies.
+2. Checks if the LinkedIn session is active. If not, waits for manual login.
 3. Navigates to the search results page using the provided URL.
-4. Iterates over each profile on the page, sending a connection request if a "Connect" button is available, optionally including a personalized message.
-5. Repeats for each subsequent page of search results until the maximum page count is reached.
-6. Once the maximum number of connection requests is sent, saves cookies, writes a log file, and closes the browser.
+4. Iterates over each profile on the page, sending a connection request if a "Connect" link is available.
+5. Repeats for each subsequent page until the maximum page count or connection limit is reached.

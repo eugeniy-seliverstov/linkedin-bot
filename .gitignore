@@ -8,3 +8,7 @@ node_modules/
 cookies.json
 .env.*
 !.env.example
+
+scripts/*.json
+scripts/*.html
+scripts/*.png

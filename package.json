@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "node src/index.js",
-    "start:stealth": "node src/index.js --stealth",
     "start": "node src/index.js",
+    "start:headless": "node src/index.js --headless",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"
   },
@@ -16,9 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.3.1",
-    "puppeteer": "^24.38.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
+    "playwright": "^1.58.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

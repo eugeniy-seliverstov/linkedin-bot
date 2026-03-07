@@ -3,16 +3,16 @@ import { log } from './logger.js'
 
 const COOKIES_PATH = './cookies.json'
 
-export async function saveCookies(page) {
+export async function saveCookies(context) {
   try {
-    const cookies = await page.cookies()
+    const cookies = await context.cookies()
     await fs.promises.writeFile(COOKIES_PATH, JSON.stringify(cookies, null, 2))
   } catch (err) {
     log.error('Error saving cookies', err)
   }
 }
 
-export async function loadCookies(page) {
+export async function loadCookies(context) {
   try {
     if (!fs.existsSync(COOKIES_PATH)) {
       log.warn('Cookies file not found, skipping')
@@ -26,7 +26,7 @@ export async function loadCookies(page) {
     }
 
     const cookies = JSON.parse(raw)
-    await page.setCookie(...cookies)
+    await context.addCookies(cookies)
     log.info('Cookies loaded successfully')
   } catch (err) {
     log.warn('Error loading cookies', err)

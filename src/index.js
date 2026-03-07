@@ -12,12 +12,12 @@ async function start() {
 
   const launched = await launchBrowser()
   browser = launched.browser
-  const { page } = launched
+  const { context, page } = launched
 
-  await ensureLoggedIn(page)
+  await ensureLoggedIn(context, page)
 
   log.info('Navigating to search page')
-  await page.goto(config.searchUrl, { waitUntil: 'domcontentloaded', timeout: config.timeout })
+  await page.goto(config.searchUrl, { waitUntil: 'domcontentloaded' })
 
   let totalLooked = 0
   let totalConnected = 0
@@ -26,7 +26,7 @@ async function start() {
     log.info(`Processing page ${i + 1} of ${config.maxPage}`)
     await scrollDown(page)
 
-    const { looked, connected } = await connectPeople(page)
+    const { looked, connected } = await connectPeople(page, config.maxClickedProfiles)
     totalLooked += looked
     totalConnected += connected
 
