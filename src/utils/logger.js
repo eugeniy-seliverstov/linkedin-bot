@@ -12,16 +12,20 @@ const getLogFilePath = () => {
   return path.join(LOG_DIR, `${date}.log`)
 }
 
-const writeLog = (level, message, data = {}) => {
-  const timestamp = new Date().toISOString()
-  const logData = data && Object.keys(data).length ? ` ${JSON.stringify(data)}` : ''
+const formatData = (data) => {
+  if (!data) return ''
+  if (data instanceof Error) return ` ${data.message}\n${data.stack}`
+  if (Object.keys(data).length) return ` ${JSON.stringify(data)}`
+  return ''
+}
 
-  const logEntry = `[${timestamp}] [${level.toUpperCase()}] ${message}${logData}\n`
+const writeLog = (level, message, data) => {
+  const timestamp = new Date().toISOString()
+  const logEntry = `[${timestamp}] [${level.toUpperCase()}] ${message}${formatData(data)}\n`
 
   console.log(logEntry.trim())
 
-  const filePath = getLogFilePath()
-  fs.appendFile(filePath, logEntry, (err) => {
+  fs.appendFile(getLogFilePath(), logEntry, (err) => {
     if (err) console.error('Error writing log file', err)
   })
 }

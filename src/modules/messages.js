@@ -1,4 +1,4 @@
-export const messages = [
+const messages = [
   'Hello NAME! Your experience in tech recruitment caught my attention. As a frontend dev, I\'m interested in connecting with hiring professionals and seeking new challenges to grow my skills. Let\'s explore opportunities.',
   'Hi there NAME! Your expertise in tech recruitment caught my eye. As a frontend dev, I\'m passionate about creating engaging web experiences and always seeking new opportunities to grow. Let\'s connect and explore possibilities.',
   'Greetings NAME! Your focus on tech recruitment stood out to me. As a frontend dev, I\'m interested in connecting with hiring professionals and seeking new challenges to create high-performing web experiences. Let\'s connect and explore possibilities.',
@@ -22,6 +22,6 @@ export const messages = [
 ]
 
 export function getConnectionMessage(name) {
-  const randomIndex = Math.floor(Math.random() * messages.length)
-  return messages[randomIndex].replace('NAME', name)
+  const index = Math.floor(Math.random() * messages.length)
+  return messages[index].replace('NAME', name)
 }

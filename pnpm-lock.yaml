@@ -20,9 +20,6 @@ importers:
       puppeteer-extra-plugin-stealth:
         specifier: ^2.11.2
         version: 2.11.2(puppeteer-extra@3.3.6(puppeteer-core@24.38.0)(puppeteer@24.38.0))
-      thesaurus:
-        specifier: ^0.0.1
-        version: 0.0.1
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -818,9 +815,6 @@ packages:
 
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
-
-  thesaurus@0.0.1:
-    resolution: {integrity: sha512-EhaO3KcD3e3SgEeMvcaS0/lehYf4zpB0dL3cq/xT6VhWrz3G2bWmney6icIDi0hXGV40NI9T2f63AKBQ0ubfSQ==}
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -1712,8 +1706,6 @@ snapshots:
       b4a: 1.8.0
     transitivePeerDependencies:
       - react-native-b4a
-
-  thesaurus@0.0.1: {}
 
   tslib@2.8.1: {}
 

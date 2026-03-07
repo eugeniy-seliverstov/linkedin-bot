@@ -2,14 +2,14 @@
   "name": "linkedin-automation",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "node index.js",
-    "start:stealth": "node index.js --stealth",
-    "start": "node index.js",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "dev": "node src/index.js",
+    "start:stealth": "node src/index.js --stealth",
+    "start": "node src/index.js",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "keywords": [],
   "author": "",
@@ -18,8 +18,7 @@
     "dotenv": "^17.3.1",
     "puppeteer": "^24.38.0",
     "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "thesaurus": "^0.0.1"
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
