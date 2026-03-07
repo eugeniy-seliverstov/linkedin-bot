@@ -1,12 +1,15 @@
 import fs from 'fs'
+import { fileURLToPath } from 'url'
+import { resolve, dirname } from 'path'
 import { log } from './logger.js'
 
-const COOKIES_PATH = './cookies.json'
+const COOKIES_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '../../cookies.json')
 
 export async function saveCookies(context) {
   try {
     const cookies = await context.cookies()
     await fs.promises.writeFile(COOKIES_PATH, JSON.stringify(cookies, null, 2))
+    await fs.promises.chmod(COOKIES_PATH, 0o600)
   } catch (err) {
     log.error('Error saving cookies', err)
   }

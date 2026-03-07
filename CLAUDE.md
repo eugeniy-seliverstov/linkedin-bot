@@ -38,7 +38,7 @@ Modules receive `page`/`context` as arguments (dependency injection). Errors bub
 
 ## Configuration
 
-All config via `.env` (see `.env.example`). Required: `LINKEDIN_LOGIN`, `LINKEDIN_PASSWORD`, `SEARCH_URL`. Optional: `MAX_PAGE`, `TIMEOUT`, `MAX_CLICKED_PROFILES`, `RANDOM_MAX_TIMEOUT`.
+All config via `.env` (see `.env.example`). Required: `SEARCH_URL`. Optional: `MAX_PAGE`, `TIMEOUT`, `MAX_CLICKED_PROFILES`, `RANDOM_MAX_TIMEOUT`. No credentials stored — auth uses cookie-based session (`cookies.json`).
 
 ## Code Style
 

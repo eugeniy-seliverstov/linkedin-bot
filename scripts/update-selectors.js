@@ -29,6 +29,19 @@ if (!title.includes('Feed')) {
 console.log('Enter your SEARCH_URL and press ENTER:')
 const searchUrl = await new Promise(r => process.stdin.once('data', d => r(d.toString().trim())))
 
+try {
+  const parsed = new URL(searchUrl)
+  if (!parsed.hostname.endsWith('linkedin.com')) {
+    console.error('Error: URL must be a linkedin.com URL')
+    await browser.close()
+    process.exit(1)
+  }
+} catch {
+  console.error('Error: Invalid URL')
+  await browser.close()
+  process.exit(1)
+}
+
 console.log('\nNavigating to search page...')
 await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
 await page.waitForTimeout(3000)

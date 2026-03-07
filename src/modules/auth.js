@@ -28,7 +28,15 @@ export async function ensureLoggedIn(context, page) {
 
 function notify(title, message) {
   try {
-    execFileSync('osascript', ['-e', `display notification "${message}" with title "${title}" sound name "default"`])
+    const esc = (s) => s.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+    if (process.platform === 'darwin') {
+      execFileSync('osascript', ['-e', `display notification "${esc(message)}" with title "${esc(title)}" sound name "default"`])
+    } else if (process.platform === 'win32') {
+      const ps = `Add-Type -AssemblyName System.Windows.Forms; $n = New-Object System.Windows.Forms.NotifyIcon; $n.Icon = [System.Drawing.SystemIcons]::Information; $n.Visible = $true; $n.ShowBalloonTip(5000, "${esc(title)}", "${esc(message)}", [System.Windows.Forms.ToolTipIcon]::Info); Start-Sleep -s 6; $n.Dispose()`
+      execFileSync('powershell', ['-NoProfile', '-Command', ps])
+    } else {
+      execFileSync('notify-send', [title, message])
+    }
   } catch {
     // Notification failed, not critical
   }
