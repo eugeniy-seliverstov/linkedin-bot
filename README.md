@@ -54,3 +54,9 @@ node scripts/update-selectors.js
 The script opens a browser, navigates to your search page, tests multiple selector candidates, and saves results to `scripts/detected-selectors.json`.
 
 **If you use Claude Code**, run the `/update-selectors` skill — it executes the script, reads the output, and updates `src/selectors.js` in one step.
+
+## macOS Automation
+
+You can configure the bot to run automatically once per day whenever your Mac wakes up or is unlocked, using **sleepwatcher**.
+
+See [docs/macos-sleepwatcher-automation.md](docs/macos-sleepwatcher-automation.md) for the full setup guide.
