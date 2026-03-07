@@ -6,3 +6,5 @@ logs/*.log
 node_modules/
 
 cookies.json
+.env.*
+!.env.example

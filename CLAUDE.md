@@ -11,7 +11,7 @@ yarn lint         # ESLint check
 yarn lint:fix     # ESLint auto-fix
 ```
 
-Package manager: **yarn** (yarn.lock present).
+Package manager: **pnpm**.
 
 ## Architecture
 
