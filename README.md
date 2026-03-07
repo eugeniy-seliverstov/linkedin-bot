@@ -42,3 +42,15 @@ The bot uses **cookie-based authentication**. No credentials are stored in confi
 3. Navigates to the search results page using the provided URL.
 4. Iterates over each profile on the page, sending a connection request if a "Connect" link is available.
 5. Repeats for each subsequent page until the maximum page count or connection limit is reached.
+
+## Updating Selectors
+
+LinkedIn periodically changes its HTML structure, which can break the bot (e.g. "No cards found", connect button not found, timeouts). When this happens, run the selector detection script to find working selectors and update `src/selectors.js` automatically.
+
+```bash
+node scripts/update-selectors.js
+```
+
+The script opens a browser, navigates to your search page, tests multiple selector candidates, and saves results to `scripts/detected-selectors.json`.
+
+**If you use Claude Code**, run the `/update-selectors` skill — it executes the script, reads the output, and updates `src/selectors.js` in one step.
