@@ -1,7 +1,6 @@
 export const selectors = {
   searchResults: {
-    card: '[data-view-name="people-search-result"]',
-    name: 'a[data-view-name="search-result-lockup-title"]',
+    card: '[role="list"] [role="listitem"]',
     connectLink: 'a[aria-label*="Invite"][aria-label*="to connect"]',
     pendingLink: 'a[aria-label*="Pending"]',
   },
