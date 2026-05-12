@@ -41,9 +41,17 @@ if pgrep -f "node src/index.js" > /dev/null; then
   exit 0
 fi
 
-echo "$TODAY" > "$LOCK"
 echo "$(date) Starting bot..." >> "$LOG"
-cd "$BOT_DIR" && pnpm start >> "$LOG" 2>&1 &
+(
+  cd "$BOT_DIR" && pnpm start >> "$LOG" 2>&1
+  EXIT_CODE=$?
+  if [ "$EXIT_CODE" -eq 0 ]; then
+    echo "$TODAY" > "$LOCK"
+    echo "$(date) Bot finished OK, marked done for $TODAY" >> "$LOG"
+  else
+    echo "$(date) Bot failed (exit $EXIT_CODE) — NOT marking done, will retry on next wake" >> "$LOG"
+  fi
+) &
 ```
 
 Make it executable:
